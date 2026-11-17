@@ -45,12 +45,18 @@ uploaded_file = st.file_uploader("📂 Choose your data file (CSV)", type="csv",
 if uploaded_file is not None:
     st.success(f"File received: {uploaded_file.name}", icon="✅")
 
-    mandatory_columns = config.MANDATORY_COLUMNS
+    with st.expander("⚙️ Define the behavior columns to use for plotting"):
+        behavior_columns = st.multiselect("⚙️ Select or define columns names",
+                                          options=config.BEHAVIOR_COLUMNS,
+                                          default=config.BEHAVIOR_COLUMNS,
+                                          accept_new_options=True)
+
     info_columns = config.INFO_COLUMNS
-    behavior_columns = config.BEHAVIOR_COLUMNS
     total_larvae_per_replicate = config.TOTAL_LARVAE_REPLICATE
+    mandatory_columns = behavior_columns + [total_larvae_per_replicate] + info_columns + ["NB_REPLICATES"]
     output_format = config.OUTPUT_FORMAT
     output_res = config.OUTPUT_RES
+    
 
     try:
         grouped_percentage, warnings_list = prepare_data_for_plotting(uploaded_file,
