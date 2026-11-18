@@ -5,15 +5,17 @@ import matplotlib.pyplot as plt
 
 import config
 from coral_data_plot import (InvalidDataError,
+                             load_coral_data,
                              prepare_data_for_plotting, plot_larval_behavior,
                              zippack_figures)
 
-
+PERCENTAGES_MEMORY_KEY = "percentages_computed"
 GRAPH_MEMORY_KEY = "graphs_requested"
 
 
-def forget_graphs():
-    """Hide the graphs when the user picks another datafile."""
+def reset_results():
+    """Hide computed results when the data file or the column selection changes."""
+    st.session_state[PERCENTAGES_MEMORY_KEY] = False
     st.session_state[GRAPH_MEMORY_KEY] = False
 
 
@@ -40,29 +42,53 @@ with st.expander("📋 Expected file format"):
     """)
 
 uploaded_file = st.file_uploader("📂 Choose your data file (CSV)", type="csv",
-                                 on_change=forget_graphs)
+                                 on_change=reset_results)
 
 if uploaded_file is not None:
     st.success(f"File received: {uploaded_file.name}", icon="✅")
 
+    try:
+        coral_data = load_coral_data(uploaded_file)
+    except InvalidDataError as error:
+        st.error(str(error), icon="🚫")
+        st.stop()
+
+    # Columns options the user can select as larval behavior
+    default_behavior = config.BEHAVIOR_COLUMNS
+    dataframe_columns = coral_data.columns.tolist()
+    behavior_options = default_behavior + [column for column in dataframe_columns
+                                           if column not in default_behavior]
+
     with st.expander("⚙️ Define the behavior columns to use for plotting"):
-        behavior_columns = st.multiselect("⚙️ Select or define columns names",
-                                          options=config.BEHAVIOR_COLUMNS,
-                                          default=config.BEHAVIOR_COLUMNS,
-                                          accept_new_options=True)
+        behavior_columns = st.multiselect("Behavior columns to plot",
+                                          options=behavior_options,
+                                          default=default_behavior,
+                                          accept_new_options=True,
+                                          on_change=reset_results)
+
+    if not behavior_columns:
+        st.error("You must select at least one behavior column to plot.",
+                 icon="🚫")
+        st.stop()
 
     info_columns = config.INFO_COLUMNS
     total_larvae_per_replicate = config.TOTAL_LARVAE_REPLICATE
     mandatory_columns = behavior_columns + [total_larvae_per_replicate] + info_columns + ["NB_REPLICATES"]
     output_format = config.OUTPUT_FORMAT
     output_res = config.OUTPUT_RES
-    
+
+    if st.button("Compute percentages", type="primary", icon="📊"):
+        st.session_state[PERCENTAGES_MEMORY_KEY] = True
+
+    if not st.session_state.get(PERCENTAGES_MEMORY_KEY, False):
+        st.stop()
 
     try:
-        grouped_percentage, warnings_list = prepare_data_for_plotting(uploaded_file,
+        grouped_percentage, warnings_list = prepare_data_for_plotting(coral_data,
                                                                       mandatory_columns,
                                                                       info_columns,
                                                                       behavior_columns,
+                                                                      default_behavior,
                                                                       total_larvae_per_replicate)
     except InvalidDataError as error:
         st.error(str(error), icon="🚫")

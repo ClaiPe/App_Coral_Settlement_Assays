@@ -9,6 +9,7 @@ def test_all_mandatory_columns_available():
                          "NB_REPLICATES", "AGE_LARVAE", "NB_CCA_SETTLERS_TOP",
                          "NB_CCA_SETTLERS_BOTTOM", "NB_PETRIDISH_SETTLERS", "NB_HANGERS",
                          "NB_SWIMMING", "NB_NOT_SWIMMING", "NB_CAULIFLOWERS"]
+    default_behavior = ["NB_CCA_SETTLERS_BOTTOM", "NB_PETRIDISH_SETTLERS"]
     good_data = pd.DataFrame({"TOTAL_LARVAE_SET": [10], 
                               "COHORT_ID": ["1_FEF"],
                               "TREATMENT": ["NSW"],
@@ -21,7 +22,7 @@ def test_all_mandatory_columns_available():
                               "NB_SWIMMING": [3],
                               "NB_NOT_SWIMMING": [1],
                               "NB_CAULIFLOWERS": [2] })
-    result = check_column_content(good_data, mandatory_columns)
+    result = check_column_content(good_data, mandatory_columns, default_behavior)
     assert result == []
 
 
@@ -30,6 +31,7 @@ def test_not_all_mandatory_columns_available_raises_error():
                          "NB_REPLICATES", "AGE_LARVAE", "NB_CCA_SETTLERS_TOP",
                          "NB_CCA_SETTLERS_BOTTOM", "NB_PETRIDISH_SETTLERS", "NB_HANGERS",
                          "NB_SWIMMING", "NB_NOT_SWIMMING", "NB_CAULIFLOWERS"]
+    default_behavior = ["NB_CCA_SETTLERS_BOTTOM", "NB_PETRIDISH_SETTLERS"]
     bad_data = pd.DataFrame({"COHORT_ID": ["1_FEF"],
                               "TREATMENT": ["NSW"],
                               "AGE_LARVAE": [2.1], 
@@ -40,7 +42,7 @@ def test_not_all_mandatory_columns_available_raises_error():
                               "NB_NOT_SWIMMING": [1],
                               "NB_CAULIFLOWERS": [2] })
     with pytest.raises(InvalidDataError):
-        check_column_content(bad_data, mandatory_columns)
+        check_column_content(bad_data, mandatory_columns, default_behavior)
 
 
 def test_percentage_computation_correct():

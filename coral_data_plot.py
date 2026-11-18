@@ -44,22 +44,31 @@ def load_coral_data(file_path):
         raise InvalidDataError("Separator not detected or empty file")
 
 
-def get_file_name(file_path):
+def check_selection(dataframe, behavior_columns, default_behavior):
     """
-    Get file name based on its path.
+    Warn about known behavior columns present in the file but not selected.
 
     Arguments:
-    file_path: Path
+    dataframe (pd.DataFrame): The DataFrame containing the data
+    behavior_columns (list): list of selected behavior columns
+    default_behavior (list): The default behavior columns
 
-    Returns
-    file name (str)
+    Returns:
+    Warning message to inform the user on column content.
     """
-    file_path_components = file_path.split('/')
-    file_name_and_extension = file_path_components[-1].rsplit('.', 1)
-    return file_name_and_extension[0]
+    warnings = []
+
+    unselected_columns = [column for column in default_behavior
+                          if column not in behavior_columns
+                          and column in dataframe.columns]
+    if unselected_columns:
+        warnings.append(f"{', '.join(unselected_columns)} "
+                        "is in your file but not selected for plotting: "
+                        "these larvae will be counted as dead.")
+    return warnings
 
 
-def check_column_content(dataframe, mandatory_columns):
+def check_column_content(dataframe, mandatory_columns, default_behavior):
     """
     Check if the mandatory columns are present in the dataframe 
     and if there are additional columns
@@ -67,6 +76,7 @@ def check_column_content(dataframe, mandatory_columns):
     Arguments:
     dataframe (pd.DataFrame): the dataframe containing the data
     mandatory_columns (list): list of mandatory columns
+    default_behavior (list): The default behavior columns defined in config.py
 
     Returns:
     Warning message to inform the user on column content.
@@ -82,7 +92,7 @@ def check_column_content(dataframe, mandatory_columns):
                                f"{", ".join(missing_columns)}")
 
     additional_columns = [column for column in dataframe.columns
-                          if column not in mandatory_columns]
+                          if column not in mandatory_columns and column not in default_behavior]
     if additional_columns:
         warnings.append(f"Additional columns detected: "
                         f"{", ".join(additional_columns)}.\n"
@@ -279,16 +289,22 @@ def save_figure(fig, fig_name, save_dir, output_format="png", res=150):
     plt.close(fig)
 
 
-def prepare_data_for_plotting(data_file,
+def prepare_data_for_plotting(coral_data,
                               mandatory_columns,
                               info_columns,
                               behavior_columns,
+                              default_behavior,
                               total_larvae_per_replicate):
     """
-    Prepare the data to be plotted (load data file, check column content, compute percentages)
+    Prepare the data to be plotted (check column content, compute percentages)
 
     Arguments:
-    data_file: file path or uploaded file.
+    coral_data (pd.DataFrame): coral data DataFrame
+    mandatory_columns (list): list of mandatory columns
+    info_columns (list): list of info columns defined in config.py
+    behavior_columns (list): list of selected behavior columns
+    default_behavior (list): list of default behavior columns defined in config.py
+    total_larvae_per_replicate (str): column name for the total number of larvae per replicate
 
     Returns:
     dataframe with computed percentages + list of warnings
@@ -297,10 +313,11 @@ def prepare_data_for_plotting(data_file,
     InvalidDataError
     """
     warnings_list = []
-    # Loading data
-    coral_data = load_coral_data(data_file)
 
-    columns_check = check_column_content(coral_data, mandatory_columns)
+    selection_check = check_selection(coral_data, behavior_columns, default_behavior)
+    warnings_list.extend(selection_check)
+
+    columns_check = check_column_content(coral_data, mandatory_columns, default_behavior)
     warnings_list.extend(columns_check)
 
     # Data preprocessing
@@ -323,7 +340,7 @@ def zippack_figures(grouped_percentage, output_format="png", output_res=150):
     Create a zip containing all larval behavior proportion plots.
 
     Arguments:
-    grouped_percentage: dataframe containing the computed percentages necessary to plot larval behavior
+    grouped_percentage (pd.DataFrame): dataframe containing the computed percentages necessary to plot larval behavior
     output_format (str): format for the output plot
     output_res (int): resolution of the output plot
 
@@ -353,6 +370,7 @@ def main():
     mandatory_columns = config.MANDATORY_COLUMNS
     info_columns = config.INFO_COLUMNS
     behavior_columns = config.BEHAVIOR_COLUMNS
+    default_behavior = config.BEHAVIOR_COLUMNS
     total_larvae_per_replicate = config.TOTAL_LARVAE_REPLICATE
     output_path = config.OUTPUT_PATH
     output_format = config.OUTPUT_FORMAT
@@ -360,10 +378,12 @@ def main():
 
     print(f"Loading coral data from: {data_file}")
     try:
-        grouped_percentage, warnings_list = prepare_data_for_plotting(data_file,
+        coral_data = load_coral_data(data_file)
+        grouped_percentage, warnings_list = prepare_data_for_plotting(coral_data,
                                                                       mandatory_columns,
                                                                       info_columns,
                                                                       behavior_columns,
+                                                                      default_behavior,
                                                                       total_larvae_per_replicate)
     except InvalidDataError as error:
         print(f"ERROR: {error}")
