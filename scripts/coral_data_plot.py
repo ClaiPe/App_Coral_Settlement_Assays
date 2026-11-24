@@ -5,7 +5,7 @@ import config
 from scripts.data_processing import (InvalidDataError, 
                                      load_coral_data, 
                                      prepare_data)
-from scripts.behavior_plot import compute_percentage, plot_larval_behavior
+from scripts.behavior_plot import add_category_columns, compute_percentage, plot_larval_behavior
 from scripts.figure_export import save_figure, zippack_figures
 
 
@@ -16,6 +16,9 @@ def main():
     behavior_columns = config.BEHAVIOR_COLUMNS
     default_behavior = config.BEHAVIOR_COLUMNS
     total_larvae_per_replicate = config.TOTAL_LARVAE_REPLICATE
+    replicate_column = config.REPLICATE_COLUMN
+    behavior_groups = config.BEHAVIOR_GROUPS
+    plot_colors = config.BEHAVIOR_COLORS
     output_path = config.OUTPUT_PATH
     output_format = config.OUTPUT_FORMAT
     output_res = config.OUTPUT_RES
@@ -28,10 +31,13 @@ def main():
                                                  info_columns,
                                                  behavior_columns,
                                                  default_behavior,
-                                                 total_larvae_per_replicate)
-        behavior_columns = behavior_columns + ["NB_DEAD"]
+                                                 total_larvae_per_replicate,
+                                                 replicate_column)
+
+        coral_data, category_columns = add_category_columns(coral_data, behavior_groups)
+
         grouped_percentage = compute_percentage(coral_data,
-                                                behavior_columns,
+                                                category_columns,
                                                 total_larvae_per_replicate,
                                                 info_columns)
     except InvalidDataError as error:
@@ -44,12 +50,12 @@ def main():
 
     for cohort in tqdm(cohorts,
                        desc="Plotting larval behavior for each cohort"):
-        figure, fig_name = plot_larval_behavior(grouped_percentage, cohort)
+        figure, fig_name = plot_larval_behavior(grouped_percentage, cohort, plot_colors)
         save_figure(figure, fig_name,
                     output_path, output_format, output_res)
 
     zip_bytes = zippack_figures(grouped_percentage,
-                                output_format, output_res)
+                                output_format, output_res, plot_colors)
     output_file_name = f"{Path(data_file).stem}_plot.zip"
     (Path(output_path) / output_file_name).write_bytes(zip_bytes)
 

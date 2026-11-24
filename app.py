@@ -4,8 +4,12 @@ import streamlit as st
 import matplotlib.pyplot as plt
 
 import config
-from scripts.data_processing import InvalidDataError, load_coral_data, prepare_data
-from scripts.behavior_plot import compute_percentage, plot_larval_behavior
+from scripts.data_processing import (InvalidDataError,
+                                     load_coral_data,
+                                     prepare_data)
+from scripts.behavior_plot import (add_category_columns,
+                                   compute_percentage,
+                                   plot_larval_behavior)
 from scripts.figure_export import zippack_figures
 
 PERCENTAGES_MEMORY_KEY = "percentages_computed"
@@ -62,17 +66,25 @@ if uploaded_file is not None:
         st.stop()
 
     # Columns options the user can select as larval behavior
+    behavior_groups = config.BEHAVIOR_GROUPS
     default_behavior = config.BEHAVIOR_COLUMNS
+    dead_category = config.DEAD_CATEGORY
     dataframe_columns = coral_data.columns.tolist()
     behavior_options = default_behavior + [column for column in dataframe_columns
                                            if column not in default_behavior]
 
     with st.expander("⚙️ Define the behavior columns to use for plotting"):
-        behavior_columns = st.multiselect("Behavior columns to plot",
-                                          options=behavior_options,
-                                          default=default_behavior,
-                                          accept_new_options=True,
-                                          on_change=reset_results)
+        selected_groups = {}
+        for category in behavior_groups:
+            if category == dead_category:
+                continue
+            selected_groups[category] = st.multiselect(f"{category} behavior columns",
+                                                      options=behavior_options,
+                                                      default=behavior_groups[category],
+                                                      accept_new_options=True,
+                                                      on_change=reset_results)
+        behavior_columns = [column for columns in selected_groups.values() for column in columns]
+        selected_groups[dead_category] = behavior_groups[dead_category]
 
     if not behavior_columns:
         st.error("You must select at least one behavior column to plot.",
@@ -83,6 +95,7 @@ if uploaded_file is not None:
     total_larvae_per_replicate = config.TOTAL_LARVAE_REPLICATE
     replicate_column = config.REPLICATE_COLUMN
     mandatory_columns = behavior_columns + [total_larvae_per_replicate] + info_columns + [replicate_column]
+    plot_colors = config.BEHAVIOR_COLORS
     output_format = config.OUTPUT_FORMAT
     output_res = config.OUTPUT_RES
 
@@ -93,16 +106,16 @@ if uploaded_file is not None:
         st.stop()
 
     try:
-        coral_data_clean, warnings_list = prepare_data(coral_data,
+        coral_data, warnings_list = prepare_data(coral_data,
                                                        mandatory_columns,
                                                        info_columns,
                                                        behavior_columns,
                                                        default_behavior,
                                                        total_larvae_per_replicate,
                                                        replicate_column)
-        behavior_columns = behavior_columns + ["NB_DEAD"]
-        grouped_percentage = compute_percentage(coral_data_clean,
-                                                behavior_columns,
+        coral_data, category_columns = add_category_columns(coral_data, selected_groups)
+        grouped_percentage = compute_percentage(coral_data,
+                                                category_columns,
                                                 total_larvae_per_replicate,
                                                 info_columns)
     except InvalidDataError as error:
@@ -126,7 +139,7 @@ if uploaded_file is not None:
 
         with st.spinner("🌊 Plotting larval behavior for each cohort..."):
             zip_bytes = zippack_figures(grouped_percentage,
-                                        output_format, output_res)
+                                        output_format, output_res, plot_colors)
             output_file_name = f"{Path(uploaded_file.name).stem}_plot.zip"
 
             with second_column:
@@ -138,7 +151,7 @@ if uploaded_file is not None:
                     icon="📥")
 
             for cohort in cohorts:
-                figure, _ = plot_larval_behavior(grouped_percentage, cohort)
+                figure, _ = plot_larval_behavior(grouped_percentage, cohort, plot_colors)
                 st.pyplot(figure)
                 plt.close(figure)
 
