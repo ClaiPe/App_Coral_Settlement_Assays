@@ -4,10 +4,9 @@ import streamlit as st
 import matplotlib.pyplot as plt
 
 import config
-from coral_data_plot import (InvalidDataError,
-                             load_coral_data,
-                             prepare_data_for_plotting, plot_larval_behavior,
-                             zippack_figures)
+from scripts.data_processing import InvalidDataError, load_coral_data, prepare_data
+from scripts.behavior_plot import compute_percentage, plot_larval_behavior
+from scripts.figure_export import zippack_figures
 
 PERCENTAGES_MEMORY_KEY = "percentages_computed"
 GRAPH_MEMORY_KEY = "graphs_requested"
@@ -28,17 +27,26 @@ st.caption("🌊 Visualize larval behavior proportions from your "
            "settlement assay data.")
 
 with st.expander("📋 Expected file format"):
+    cohort_column, treatment_column, age_column = config.INFO_COLUMNS
     st.markdown(f"""
-    - CSV file, separated by ',' or ';'
-    - Decimal separator must be '.'
-    - The file must at least contain the following data (12 columns):
-        - the cohort id in a column "COHORT_ID"
-        - the treatment applied in a column "TREATMENT"
-        - the age of larvae in a column "AGE_LARVAE"
-        - the replicate ID in a column "NB_REPLICATES"
-        - the number of larvae in each replicate in a column "TOTAL_LARVAE_SET"
-        - the number of larvae observed in each development stage including:
-        {", ".join(config.BEHAVIOR_COLUMNS)}
+    - CSV file, separated by `,` or `;`
+    - Decimal separator must be `.` (for example `2.5`, not `2,5`)
+    - Column names are case-sensitive; column order does not matter
+    - The file must contain at least these
+      {len(config.MANDATORY_COLUMNS)} columns:
+        - `{cohort_column}`: cohort identifier
+        - `{treatment_column}`: treatment applied
+        - `{age_column}`: age of the larvae (in days)
+        - `{config.REPLICATE_COLUMN}`: replicate identifier
+        - `{config.TOTAL_LARVAE_REPLICATE}`: initial number of larvae
+          in the replicate
+        - the number of larvae observed in each behavior:
+          {", ".join(f"`{column}`" for column in config.BEHAVIOR_COLUMNS)}
+    - Dead larvae are computed automatically:
+      `{config.TOTAL_LARVAE_REPLICATE}` minus the sum of the behavior columns
+    - Other columns are accepted but ignored
+    - The behavior columns can be changed after uploading the file
+      (⚙️ settings below)
     """)
 
 uploaded_file = st.file_uploader("📂 Choose your data file (CSV)", type="csv",
@@ -73,7 +81,8 @@ if uploaded_file is not None:
 
     info_columns = config.INFO_COLUMNS
     total_larvae_per_replicate = config.TOTAL_LARVAE_REPLICATE
-    mandatory_columns = behavior_columns + [total_larvae_per_replicate] + info_columns + ["NB_REPLICATES"]
+    replicate_column = config.REPLICATE_COLUMN
+    mandatory_columns = behavior_columns + [total_larvae_per_replicate] + info_columns + [replicate_column]
     output_format = config.OUTPUT_FORMAT
     output_res = config.OUTPUT_RES
 
@@ -84,12 +93,18 @@ if uploaded_file is not None:
         st.stop()
 
     try:
-        grouped_percentage, warnings_list = prepare_data_for_plotting(coral_data,
-                                                                      mandatory_columns,
-                                                                      info_columns,
-                                                                      behavior_columns,
-                                                                      default_behavior,
-                                                                      total_larvae_per_replicate)
+        coral_data_clean, warnings_list = prepare_data(coral_data,
+                                                       mandatory_columns,
+                                                       info_columns,
+                                                       behavior_columns,
+                                                       default_behavior,
+                                                       total_larvae_per_replicate,
+                                                       replicate_column)
+        behavior_columns = behavior_columns + ["NB_DEAD"]
+        grouped_percentage = compute_percentage(coral_data_clean,
+                                                behavior_columns,
+                                                total_larvae_per_replicate,
+                                                info_columns)
     except InvalidDataError as error:
         st.error(str(error), icon="🚫")
         st.stop()

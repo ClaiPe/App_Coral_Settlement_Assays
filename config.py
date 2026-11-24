@@ -1,23 +1,32 @@
 # Parameter used to plot the coral settlement data.
 
 FILE_PATH = "data/202603_GFASC_FEF_Settlement_Assays.csv"
-# FILE_PATH = "data/test_comma.csv"
-# FILE_PATH = "data/empty_file.csv"
-# FILE_PATH = "data/exact_columns.csv"
 
-TOTAL_LARVAE_REPLICATE = "TOTAL_LARVAE_SET"
+TOTAL_LARVAE_REPLICATE = "INITIAL_NB_LARVAE"
 
 INFO_COLUMNS = ["COHORT_ID", "TREATMENT", "AGE_LARVAE"]
 
-BEHAVIOR_COLUMNS = ["NB_CCA_SETTLERS_TOP",
+REPLICATE_COLUMN = "REPLICATE"
+
+BEHAVIOR_COLUMNS = ["Sw_Surface",
+                    "Sw_Bottom",
+                    "Not_Sw_Surface",
+                    "Not_Sw_Bottom",
+                    "NB_CCA_SETTLERS_Top",
                     "NB_CCA_SETTLERS_BOTTOM",
-                    "NB_PETRIDISH_SETTLERS",
+                    "NB_PETRI_SETTLERS",
                     "NB_HANGERS",
-                    "NB_SWIMMING",
-                    "NB_NOT_SWIMMING",
                     "NB_CAULIFLOWERS"]
 
-MANDATORY_COLUMNS = [TOTAL_LARVAE_REPLICATE] + INFO_COLUMNS + BEHAVIOR_COLUMNS + ["NB_REPLICATES"]
+MANDATORY_COLUMNS = [TOTAL_LARVAE_REPLICATE] + INFO_COLUMNS + BEHAVIOR_COLUMNS + [REPLICATE_COLUMN]
+
+SETTLED = ["NB_CCA_SETTLERS_Top",
+           "NB_CCA_SETTLERS_BOTTOM",
+           "NB_PETRI_SETTLERS"]
+
+SETTLING = ["NB_HANGERS"]
+
+METAMORPHOSED = SETTLED + ["NB_CAULIFLOWERS"]
 
 OUTPUT_PATH = "./output"
 OUTPUT_FORMAT = "png"

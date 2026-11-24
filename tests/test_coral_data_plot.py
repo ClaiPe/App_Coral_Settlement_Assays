@@ -1,8 +1,10 @@
 import pandas as pd
 import pytest
 
-from coral_data_plot import (InvalidDataError, 
-                             check_column_content, compute_percentage_per_row)
+from scripts.data_processing import (InvalidDataError,
+                                     check_column_content)
+from scripts.behavior_plot import compute_percentage_per_row
+
 
 def test_all_mandatory_columns_available():
     mandatory_columns = ["TOTAL_LARVAE_SET", "COHORT_ID", "TREATMENT",
