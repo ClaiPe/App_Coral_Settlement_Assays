@@ -29,7 +29,7 @@ def save_figure(fig, fig_name, save_dir, output_format="png", res=150):
                 bbox_inches="tight")
     plt.close(fig)
 
-def zippack_figures(grouped_percentage, output_format="png", output_res=150, colors_dict=None):
+def zippack_figures(grouped_percentage, output_format="png", output_res=150, plot_colors=None):
     """
     Create a zip containing all larval behavior proportion plots.
 
@@ -37,17 +37,17 @@ def zippack_figures(grouped_percentage, output_format="png", output_res=150, col
     grouped_percentage (pd.DataFrame): dataframe containing the computed percentages necessary to plot larval behavior
     output_format (str): format for the output plot
     output_res (int): resolution of the output plot
-    colors_dict (dict): dictionary mapping behavior categories to colors
+    plot_colors (dict): dictionary mapping behavior categories to colors
 
     Returns:
-    zip 
+    zip file containing the plots
     """
     zip_buffer = io.BytesIO()
     cohorts = grouped_percentage.index.unique(level="COHORT_ID")
 
     with zipfile.ZipFile(zip_buffer, "w") as archive:
         for cohort in cohorts:
-            figure, fig_name = plot_larval_behavior(grouped_percentage, cohort, colors_dict)
+            figure, fig_name = plot_larval_behavior(grouped_percentage, cohort, plot_colors)
             figure_buffer = io.BytesIO()
             figure.savefig(figure_buffer,
                            format=output_format,
