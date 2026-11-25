@@ -1,22 +1,18 @@
 # Parameters used to plot the coral settlement data.
 
+# Names of the two experiments (keys of ASSAY_SETTINGS)
+SETTLEMENT_ASSAY = "Settlement assay"
+COMPETENCY_ASSAY = "Competency assay"
+
+# Input file and experiment used by the command-line script
 FILE_PATH = "data/202510_BEM_ELH_Behavior.csv"
+CLI_ASSAY = SETTLEMENT_ASSAY
 
 TOTAL_LARVAL_COLUMN = "INITIAL_NB_LARVAE"
 
 INFO_COLUMNS = ["COHORT_ID", "TREATMENT", "AGE_LARVAE"]
 
 REPLICATE_COLUMN = "REPLICATE"
-
-BEHAVIOR_COLUMNS = ["Sw_Surface",
-                    "Sw_Bottom",
-                    "Not_Sw_Surface",
-                    "Not_Sw_Bottom",
-                    "NB_CCA_SETTLERS_Top",
-                    "NB_CCA_SETTLERS_BOTTOM",
-                    "NB_PETRI_SETTLERS",
-                    "NB_HANGERS",
-                    "NB_CAULIFLOWERS"]
 
 SETTLED = ["NB_CCA_SETTLERS_Top",
            "NB_CCA_SETTLERS_BOTTOM",
@@ -41,12 +37,6 @@ BEHAVIOR_GROUPS = {
     DEAD_CATEGORY: ["NB_DEAD"]
 }
 
-BEHAVIOR_COLUMNS = [column for category, columns in BEHAVIOR_GROUPS.items()
-                    if category != DEAD_CATEGORY
-                    for column in columns]
-
-MANDATORY_COLUMNS = [TOTAL_LARVAL_COLUMN] + INFO_COLUMNS + BEHAVIOR_COLUMNS + [REPLICATE_COLUMN]
-
 BEHAVIOR_COLORS = {
     SETTLED_CATEGORY: "#4ea06e",
     SETTLING_CATEGORY: "#d7ab5c",
@@ -58,7 +48,36 @@ BEHAVIOR_COLORS = {
     DEAD_CATEGORY: "#807E7E"
 }
 
-# Competency assay
+# Columns of the competency assay file
+COMPETENCY_TOTAL_COLUMN = "TOTAL_LARVAE_SET"
+COMPETENCY_REPLICATE_COLUMN = "NB_REPLICATES"
+
+COMPETENCY_SETTLED = ["NB_CCA_SETTLERS_TOP",
+                      "NB_CCA_SETTLERS_BOTTOM",
+                      "NB_PETRIDISH_SETTLERS"]
+
+COMPETENCY_GROUPS = {
+    SETTLED_CATEGORY: COMPETENCY_SETTLED,
+    SETTLING_CATEGORY: SETTLING,
+    CAULIFLOWER_CATEGORY: ["NB_CAULIFLOWERS"],
+    DEAD_CATEGORY: ["NB_DEAD"]
+}
+
+# Settings of each experiment: the app picks one with the radio button
+ASSAY_SETTINGS = {
+    SETTLEMENT_ASSAY: {
+        "total_column": TOTAL_LARVAL_COLUMN,
+        "replicate_column": REPLICATE_COLUMN,
+        "behavior_groups": BEHAVIOR_GROUPS
+    },
+    COMPETENCY_ASSAY: {
+        "total_column": COMPETENCY_TOTAL_COLUMN,
+        "replicate_column": COMPETENCY_REPLICATE_COLUMN,
+        "behavior_groups": COMPETENCY_GROUPS
+    }
+}
+
+# Competency curves
 METAMORPHOSED_CURVE = "Metamorphosed"
 ALIVE_CURVE = "Alive"
 SETTLING_CURVE = "Settling"
@@ -69,7 +88,7 @@ COMPETENCY_CURVES = {
 }
 
 COMPETENCY_COLORS = {
-    METAMORPHOSED_CURVE: "#353434",
+    METAMORPHOSED_CURVE: "#545454",
     ALIVE_CURVE: "#f7b63d",
     SETTLING_CURVE: "#F06A6A"
 }

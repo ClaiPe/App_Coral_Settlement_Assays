@@ -4,8 +4,6 @@ import zipfile
 
 import matplotlib.pyplot as plt
 
-from scripts.behavior_plot import plot_larval_behavior
-
 
 def save_figure(fig, fig_name, save_dir, output_format="png", res=150):
     """
@@ -29,12 +27,14 @@ def save_figure(fig, fig_name, save_dir, output_format="png", res=150):
                 bbox_inches="tight")
     plt.close(fig)
 
-def zippack_figures(grouped_percentage, output_format="png", output_res=150, plot_colors=None):
+
+def zippack_figures(dataframe, plot_function, plot_colors, output_format="png", output_res=150):
     """
-    Create a zip containing all larval behavior proportion plots.
+    Create a zip containing plots depending on the plot function selected.
 
     Arguments:
-    grouped_percentage (pd.DataFrame): dataframe containing the computed percentages necessary to plot larval behavior
+    dataframe (pd.DataFrame): dataframe containing the computed percentages necessary to plot larval behavior
+    plot_function (function): function to plot the data
     output_format (str): format for the output plot
     output_res (int): resolution of the output plot
     plot_colors (dict): dictionary mapping behavior categories to colors
@@ -43,18 +43,19 @@ def zippack_figures(grouped_percentage, output_format="png", output_res=150, plo
     zip file containing the plots
     """
     zip_buffer = io.BytesIO()
-    cohorts = grouped_percentage.index.unique(level="COHORT_ID")
-
+    cohorts = dataframe.index.unique(level="COHORT_ID")
+        
     with zipfile.ZipFile(zip_buffer, "w") as archive:
         for cohort in cohorts:
-            figure, fig_name = plot_larval_behavior(grouped_percentage, cohort, plot_colors)
+            figure, fig_name = plot_function(dataframe, cohort, plot_colors)
             figure_buffer = io.BytesIO()
             figure.savefig(figure_buffer,
-                           format=output_format,
-                           dpi=output_res,
-                           bbox_inches="tight")
+                        format=output_format,
+                        dpi=output_res,
+                        bbox_inches="tight")
             plt.close(figure)
 
             archive.writestr(f"{fig_name}.{output_format}", figure_buffer.getvalue())
+
     zip_bytes = zip_buffer.getvalue()
     return zip_bytes

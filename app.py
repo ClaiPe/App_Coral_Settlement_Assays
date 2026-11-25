@@ -5,11 +5,15 @@ import matplotlib.pyplot as plt
 
 import config
 from scripts.data_processing import (InvalidDataError,
+                                     get_behavior_columns,
                                      load_coral_data,
                                      prepare_data)
 from scripts.behavior_plot import (add_category_columns,
                                    compute_percentage,
                                    plot_larval_behavior)
+from scripts.time_course_plot import (compute_curve_proportions,
+                                      compute_curve_mean_and_se,
+                                      plot_competency_curves)
 from scripts.figure_export import zippack_figures
 
 PERCENTAGES_MEMORY_KEY = "percentages_computed"
@@ -17,7 +21,7 @@ GRAPH_MEMORY_KEY = "graphs_requested"
 
 
 def reset_results():
-    """Hide computed results when the data file or the column selection changes."""
+    """Hide computed results when the experiment, data file or the column selection changes."""
     st.session_state[PERCENTAGES_MEMORY_KEY] = False
     st.session_state[GRAPH_MEMORY_KEY] = False
 
@@ -27,30 +31,50 @@ st.set_page_config(page_title="Coral Settlement Assays",
                    layout="centered")
 
 st.title("🐠 Coral Settlement Assays")
-st.caption("🌊 Visualize larval behavior proportions from your "
-           "settlement assay data.")
+st.caption("🌊 Visualize larval behavior evolution and competency from your "
+           "settlement and competency assays data.")
+
+assay = st.radio("Choose your experiment",
+                 options=[config.SETTLEMENT_ASSAY, config.COMPETENCY_ASSAY],
+                 horizontal=True,
+                 index=None,
+                 on_change=reset_results)
+
+if assay is None:
+    st.stop()
+
+# Settings of the chosen experiment
+settings = config.ASSAY_SETTINGS[assay]
+info_columns = config.INFO_COLUMNS
+total_larvae_per_replicate = settings["total_column"]
+replicate_column = settings["replicate_column"]
+behavior_groups = settings["behavior_groups"]
+dead_category = config.DEAD_CATEGORY
+default_behavior = get_behavior_columns(behavior_groups, dead_category)
+nb_mandatory_columns = (len(info_columns) + len(default_behavior)
+                        + 2)  # + replicate and total columns
 
 with st.expander("📋 Expected file format"):
-    cohort_column, treatment_column, age_column = config.INFO_COLUMNS
+    cohort_column, treatment_column, age_column = info_columns
     st.markdown(f"""
     - CSV file, separated by `,` or `;`
     - Decimal separator must be `.` (for example `2.5`, not `2,5`)
     - Column names are case-sensitive; column order does not matter
     - The file must contain at least these
-      {len(config.MANDATORY_COLUMNS)} columns:
+    {nb_mandatory_columns} columns:
         - `{cohort_column}`: cohort identifier
         - `{treatment_column}`: treatment applied
         - `{age_column}`: age of the larvae (in days)
-        - `{config.REPLICATE_COLUMN}`: replicate identifier
-        - `{config.TOTAL_LARVAL_COLUMN}`: initial number of larvae
-          in the replicate
+        - `{replicate_column}`: replicate identifier
+        - `{total_larvae_per_replicate}`: initial number of larvae
+        in the replicate
         - the number of larvae observed in each behavior:
-          {", ".join(f"`{column}`" for column in config.BEHAVIOR_COLUMNS)}
+        {", ".join(f"`{column}`" for column in default_behavior)}
     - Dead larvae are computed automatically:
-      `{config.TOTAL_LARVAL_COLUMN}` minus the sum of the behavior columns
+    `{total_larvae_per_replicate}` minus the sum of the behavior columns
     - Other columns are accepted but ignored
     - The behavior columns can be changed after uploading the file
-      (⚙️ settings below)
+    (⚙️ settings below)
     """)
 
 uploaded_file = st.file_uploader("📂 Choose your data file (CSV)", type="csv",
@@ -66,12 +90,9 @@ if uploaded_file is not None:
         st.stop()
 
     # Columns options the user can select as larval behavior
-    behavior_groups = config.BEHAVIOR_GROUPS
-    default_behavior = config.BEHAVIOR_COLUMNS
-    dead_category = config.DEAD_CATEGORY
     dataframe_columns = coral_data.columns.tolist()
     behavior_options = default_behavior + [column for column in dataframe_columns
-                                           if column not in default_behavior]
+                                        if column not in default_behavior]
 
     with st.expander("⚙️ Define the behavior columns to use for plotting"):
         selected_groups = {}
@@ -79,23 +100,20 @@ if uploaded_file is not None:
             if category == dead_category:
                 continue
             selected_groups[category] = st.multiselect(f"{category} behavior columns",
-                                                      options=behavior_options,
-                                                      default=behavior_groups[category],
-                                                      accept_new_options=True,
-                                                      on_change=reset_results)
+                                                    options=behavior_options,
+                                                    default=behavior_groups[category],
+                                                    accept_new_options=True,
+                                                    on_change=reset_results)
         behavior_columns = [column for columns in selected_groups.values() for column in columns]
         selected_groups[dead_category] = behavior_groups[dead_category]
 
     if not behavior_columns:
         st.error("You must select at least one behavior column to plot.",
-                 icon="🚫")
+                icon="🚫")
         st.stop()
 
-    info_columns = config.INFO_COLUMNS
-    total_larvae_per_replicate = config.TOTAL_LARVAL_COLUMN
-    replicate_column = config.REPLICATE_COLUMN
     mandatory_columns = behavior_columns + [total_larvae_per_replicate] + info_columns + [replicate_column]
-    plot_colors = config.BEHAVIOR_COLORS
+
     output_format = config.OUTPUT_FORMAT
     output_res = config.OUTPUT_RES
 
@@ -107,26 +125,41 @@ if uploaded_file is not None:
 
     try:
         coral_data, warnings_list = prepare_data(coral_data,
-                                                       mandatory_columns,
-                                                       info_columns,
-                                                       behavior_columns,
-                                                       default_behavior,
-                                                       total_larvae_per_replicate,
-                                                       replicate_column)
+                                                    mandatory_columns,
+                                                    info_columns,
+                                                    behavior_columns,
+                                                    default_behavior,
+                                                    total_larvae_per_replicate,
+                                                    replicate_column)
         coral_data, category_columns = add_category_columns(coral_data, selected_groups)
-        st.write(coral_data)
-        grouped_percentage = compute_percentage(coral_data,
-                                                category_columns,
-                                                total_larvae_per_replicate,
-                                                info_columns)
+
+        if assay == config.SETTLEMENT_ASSAY:
+            result_table = compute_percentage(coral_data,
+                                              category_columns,
+                                              total_larvae_per_replicate,
+                                              info_columns)
+            plot_function = plot_larval_behavior
+            plot_colors = config.BEHAVIOR_COLORS
+            nb_digits = 0
+        else:
+            competency_proportions = compute_curve_proportions(coral_data,
+                                                               config.COMPETENCY_CURVES,
+                                                               total_larvae_per_replicate,
+                                                               "NB_DEAD",
+                                                               config.ALIVE_CURVE,
+                                                               info_columns)
+            result_table = compute_curve_mean_and_se(competency_proportions, info_columns)
+            plot_function = plot_competency_curves
+            plot_colors = config.COMPETENCY_COLORS
+            nb_digits = 2
     except InvalidDataError as error:
         st.error(str(error), icon="🚫")
         st.stop()
     for warning in warnings_list:
         st.warning(warning, icon="⚠️")
 
-    with st.expander("📊 Mean percentages per cohort, treatment and age"):
-        st.dataframe(grouped_percentage.round(0))
+    with st.expander("📊 Mean results per cohort, treatment and age"):
+        st.dataframe(result_table.round(nb_digits))
 
     st.divider()
     left_column, second_column, third_column, right_column = st.columns(4)
@@ -136,11 +169,13 @@ if uploaded_file is not None:
             st.session_state[GRAPH_MEMORY_KEY] = True
 
     if st.session_state.get(GRAPH_MEMORY_KEY, False):
-        cohorts = grouped_percentage.index.unique(level="COHORT_ID")
+        cohorts = result_table.index.unique(level="COHORT_ID")
 
-        with st.spinner("🌊 Plotting larval behavior for each cohort..."):
-            zip_bytes = zippack_figures(grouped_percentage,
-                                        output_format, output_res, plot_colors)
+        with st.spinner("🌊 Plotting results for each cohort..."):
+            zip_bytes = zippack_figures(result_table,
+                                        plot_function,
+                                        plot_colors,
+                                        output_format, output_res)
             output_file_name = f"{Path(uploaded_file.name).stem}_plot.zip"
 
             with second_column:
@@ -152,15 +187,15 @@ if uploaded_file is not None:
                     icon="📥")
 
             for cohort in cohorts:
-                figure, _ = plot_larval_behavior(grouped_percentage, cohort, plot_colors)
+                figure, _ = plot_function(result_table, cohort, plot_colors)
                 st.pyplot(figure)
                 plt.close(figure)
 
     else:
         with second_column:
             st.download_button(label="Download graphs",
-                               data=b"", 
-                               file_name="no_graph.zip",
-                               icon="📥",
-                               disabled=True,
-                               help="Generate the graphs first")
+                            data=b"", 
+                            file_name="no_graph.zip",
+                            icon="📥",
+                            disabled=True,
+                            help="Generate the graphs first")

@@ -7,6 +7,22 @@ class InvalidDataError(Exception):
     """Error caused by an invalid data file"""
 
 
+def get_behavior_columns(behavior_groups, dead_category):
+    """
+    List the behavior columns of all categories, except the dead category.
+
+    Parameters:
+    behavior_groups (dict): category name -> list of behavior columns.
+    dead_category (str): name of the computed "dead" category, skipped.
+
+    Returns:
+    list: the behavior columns, in the order of the categories.
+    """
+    return [column for category, columns in behavior_groups.items()
+            if category != dead_category
+            for column in columns]
+
+
 def load_coral_data(file_path):
     """
     Load coral data from a CSV file.
