@@ -15,7 +15,7 @@ def main():
     info_columns = config.INFO_COLUMNS
     behavior_columns = config.BEHAVIOR_COLUMNS
     default_behavior = config.BEHAVIOR_COLUMNS
-    total_larvae_per_replicate = config.TOTAL_LARVAE_REPLICATE
+    total_larvae_per_replicate = config.TOTAL_LARVAL_COLUMN
     replicate_column = config.REPLICATE_COLUMN
     behavior_groups = config.BEHAVIOR_GROUPS
     plot_colors = config.BEHAVIOR_COLORS

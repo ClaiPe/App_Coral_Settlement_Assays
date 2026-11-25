@@ -42,12 +42,12 @@ with st.expander("📋 Expected file format"):
         - `{treatment_column}`: treatment applied
         - `{age_column}`: age of the larvae (in days)
         - `{config.REPLICATE_COLUMN}`: replicate identifier
-        - `{config.TOTAL_LARVAE_REPLICATE}`: initial number of larvae
+        - `{config.TOTAL_LARVAL_COLUMN}`: initial number of larvae
           in the replicate
         - the number of larvae observed in each behavior:
           {", ".join(f"`{column}`" for column in config.BEHAVIOR_COLUMNS)}
     - Dead larvae are computed automatically:
-      `{config.TOTAL_LARVAE_REPLICATE}` minus the sum of the behavior columns
+      `{config.TOTAL_LARVAL_COLUMN}` minus the sum of the behavior columns
     - Other columns are accepted but ignored
     - The behavior columns can be changed after uploading the file
       (⚙️ settings below)
@@ -92,7 +92,7 @@ if uploaded_file is not None:
         st.stop()
 
     info_columns = config.INFO_COLUMNS
-    total_larvae_per_replicate = config.TOTAL_LARVAE_REPLICATE
+    total_larvae_per_replicate = config.TOTAL_LARVAL_COLUMN
     replicate_column = config.REPLICATE_COLUMN
     mandatory_columns = behavior_columns + [total_larvae_per_replicate] + info_columns + [replicate_column]
     plot_colors = config.BEHAVIOR_COLORS
@@ -114,6 +114,7 @@ if uploaded_file is not None:
                                                        total_larvae_per_replicate,
                                                        replicate_column)
         coral_data, category_columns = add_category_columns(coral_data, selected_groups)
+        st.write(coral_data)
         grouped_percentage = compute_percentage(coral_data,
                                                 category_columns,
                                                 total_larvae_per_replicate,
