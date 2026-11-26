@@ -43,7 +43,7 @@ def zippack_figures(dataframe, plot_function, plot_colors, output_format="png", 
     zip file containing the plots
     """
     zip_buffer = io.BytesIO()
-    cohorts = dataframe.index.unique(level="COHORT_ID")
+    cohorts = dataframe.index.unique(level="cohort_id")
         
     with zipfile.ZipFile(zip_buffer, "w") as archive:
         for cohort in cohorts:

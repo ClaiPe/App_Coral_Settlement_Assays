@@ -61,7 +61,7 @@ def main():
         competency_proportions = compute_curve_proportions(coral_data,
                                                            competency_curves,
                                                            total_larvae_per_replicate,
-                                                           "NB_DEAD",
+                                                           config.DEAD_COLUMN,
                                                            alive_curve,
                                                            info_columns)
         competency_table = compute_curve_mean_and_se(competency_proportions, info_columns)
@@ -72,7 +72,7 @@ def main():
     for warning in warnings_list:
         print(f"WARNING: {warning}")
 
-    cohorts = grouped_percentage.index.unique(level="COHORT_ID")
+    cohorts = grouped_percentage.index.unique(level="cohort_id")
 
     for cohort in tqdm(cohorts,
                        desc="Plotting larval behavior for each cohort"):

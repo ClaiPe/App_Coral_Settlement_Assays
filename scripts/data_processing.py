@@ -32,10 +32,12 @@ def load_coral_data(file_path):
     Both comma and semicolon separators are allowed.
 
     Returns:
-    pd.DataFrame: A DataFrame containing the loaded coral data.
+    pd.DataFrame: A DataFrame containing the loaded coral data,
+    with lower-case column names.
     """
     try:
         coral_data = pd.read_csv(file_path, sep=None, engine="python")
+        coral_data.columns = coral_data.columns.str.lower()
         return coral_data
 
     except FileNotFoundError:
@@ -177,8 +179,8 @@ def data_preparation(dataframe, behavior_columns, id_columns, total_larvae_colum
     total_larvae_column (str): Name of the column with total number of larvae in the replicate
 
     What it does:
-    Add a NB_DEAD column containing the number of dead larvae in the batch.
-    Remove the rows where NB_DEAD < 0
+    Add a nb_dead column containing the number of dead larvae in the batch.
+    Remove the rows where nb_dead < 0
 
     Returns:
     The updated dataframe and associated warnings when necessary.
@@ -186,10 +188,10 @@ def data_preparation(dataframe, behavior_columns, id_columns, total_larvae_colum
     warnings = []
 
     settled_larvae = dataframe[behavior_columns].sum(axis=1)
-    dataframe["NB_DEAD"] = dataframe[total_larvae_column] - settled_larvae
+    dataframe["nb_dead"] = dataframe[total_larvae_column] - settled_larvae
 
     # Data check
-    negative_dead_mask = dataframe["NB_DEAD"] < 0
+    negative_dead_mask = dataframe["nb_dead"] < 0
     if negative_dead_mask.any():
         negative_dead_rows = dataframe.loc[negative_dead_mask, id_columns]
         negative_dead_rows_text = negative_dead_rows.to_string(index=False)

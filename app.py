@@ -59,7 +59,7 @@ with st.expander("📋 Expected file format"):
     st.markdown(f"""
     - CSV file, separated by `,` or `;`
     - Decimal separator must be `.` (for example `2.5`, not `2,5`)
-    - Column names are case-sensitive; column order does not matter
+    - Column names are not case-sensitive (`Treatment` = `TREATMENT`); column order does not matter
     - The file must contain at least these
     {nb_mandatory_columns} columns:
         - `{cohort_column}`: cohort identifier
@@ -99,11 +99,14 @@ if uploaded_file is not None:
         for category in behavior_groups:
             if category == dead_category:
                 continue
-            selected_groups[category] = st.multiselect(f"{category} behavior columns",
-                                                    options=behavior_options,
-                                                    default=behavior_groups[category],
-                                                    accept_new_options=True,
-                                                    on_change=reset_results)
+            selected_columns = st.multiselect(f"{category} behavior columns",
+                                              options=behavior_options,
+                                              default=behavior_groups[category],
+                                              accept_new_options=True,
+                                              on_change=reset_results)
+            # Columns typed by the user: same lower case as the file columns
+            selected_groups[category] = [column.lower()
+                                         for column in selected_columns]
         behavior_columns = [column for columns in selected_groups.values() for column in columns]
         selected_groups[dead_category] = behavior_groups[dead_category]
 
@@ -145,7 +148,7 @@ if uploaded_file is not None:
             competency_proportions = compute_curve_proportions(coral_data,
                                                                config.COMPETENCY_CURVES,
                                                                total_larvae_per_replicate,
-                                                               "NB_DEAD",
+                                                               config.DEAD_COLUMN,
                                                                config.ALIVE_CURVE,
                                                                info_columns)
             result_table = compute_curve_mean_and_se(competency_proportions, info_columns)
@@ -169,7 +172,7 @@ if uploaded_file is not None:
             st.session_state[GRAPH_MEMORY_KEY] = True
 
     if st.session_state.get(GRAPH_MEMORY_KEY, False):
-        cohorts = result_table.index.unique(level="COHORT_ID")
+        cohorts = result_table.index.unique(level="cohort_id")
 
         with st.spinner("🌊 Plotting results for each cohort..."):
             zip_bytes = zippack_figures(result_table,

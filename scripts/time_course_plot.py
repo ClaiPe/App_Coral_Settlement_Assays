@@ -70,7 +70,7 @@ def plot_competency_curves(competency_table, cohort_id, color_dict):
     fig name (str).
     """
     cohort_data = competency_table.loc[cohort_id]
-    treatments = cohort_data.index.unique(level="TREATMENT")
+    treatments = cohort_data.index.unique(level="treatment")
 
     fig, axes = plt.subplots(1, len(treatments),
                              figsize=(4 * len(treatments), 4),

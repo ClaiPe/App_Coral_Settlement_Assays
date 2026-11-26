@@ -1,4 +1,6 @@
 # Parameters used to plot the coral settlement data.
+# Column names are written in lower case: the columns of the loaded file are
+# converted to lower case, so the file can use any case.
 
 # Names of the two experiments (keys of ASSAY_SETTINGS)
 SETTLEMENT_ASSAY = "Settlement assay"
@@ -8,19 +10,20 @@ COMPETENCY_ASSAY = "Competency assay"
 FILE_PATH = "data/202510_BEM_ELH_Behavior.csv"
 CLI_ASSAY = SETTLEMENT_ASSAY
 
-TOTAL_LARVAL_COLUMN = "INITIAL_NB_LARVAE"
+TOTAL_LARVAL_COLUMN = "initial_nb_larvae"
 
-INFO_COLUMNS = ["COHORT_ID", "TREATMENT", "AGE_LARVAE"]
+INFO_COLUMNS = ["cohort_id", "treatment", "age_larvae"]
 
-REPLICATE_COLUMN = "REPLICATE"
+REPLICATE_COLUMN = "replicate"
 
-SETTLED = ["NB_CCA_SETTLERS_Top",
-           "NB_CCA_SETTLERS_BOTTOM",
-           "NB_PETRI_SETTLERS"]
+SETTLED = ["nb_cca_settlers_top",
+           "nb_cca_settlers_bottom",
+           "nb_petri_settlers"]
 
-SETTLING = ["NB_HANGERS"]
+SETTLING = ["nb_hangers"]
 
 DEAD_CATEGORY = "Dead"
+DEAD_COLUMN = "nb_dead"  # computed by the code, not in the file
 SETTLED_CATEGORY = "Settled"
 SETTLING_CATEGORY = "Settling"
 CAULIFLOWER_CATEGORY = "Cauliflower"
@@ -29,18 +32,20 @@ CAULIFLOWER_CATEGORY = "Cauliflower"
 BEHAVIOR_GROUPS = {
     SETTLED_CATEGORY: SETTLED,
     SETTLING_CATEGORY: SETTLING,
-    CAULIFLOWER_CATEGORY: ["NB_CAULIFLOWERS"],
-    "Not swimming at the bottom": ["Not_Sw_Bottom"],
-    "Not swimming at the surface": ["Not_Sw_Surface"],
-    "Swimming at the bottom": ["Sw_Bottom"],
-    "Swimming at the surface": ["Sw_Surface"],
-    DEAD_CATEGORY: ["NB_DEAD"]
+    CAULIFLOWER_CATEGORY: ["nb_cauliflowers"],
+    "Swimmers": ["nb_swimmers"],
+    "Not swimming at the bottom": ["not_sw_bottom"],
+    "Not swimming at the surface": ["not_sw_surface"],
+    "Swimming at the bottom": ["sw_bottom"],
+    "Swimming at the surface": ["sw_surface"],
+    DEAD_CATEGORY: [DEAD_COLUMN]
 }
 
 BEHAVIOR_COLORS = {
     SETTLED_CATEGORY: "#4ea06e",
     SETTLING_CATEGORY: "#d7ab5c",
     CAULIFLOWER_CATEGORY: "#d489b4",
+    "Swimmers": "#348ab6",
     "Not swimming at the bottom": "#6e69b7",
     "Not swimming at the surface": "#ada3ec",
     "Swimming at the bottom": "#348ab6",
@@ -49,18 +54,18 @@ BEHAVIOR_COLORS = {
 }
 
 # Columns of the competency assay file
-COMPETENCY_TOTAL_COLUMN = "TOTAL_LARVAE_SET"
-COMPETENCY_REPLICATE_COLUMN = "NB_REPLICATES"
+COMPETENCY_TOTAL_COLUMN = "total_larvae_set"
+COMPETENCY_REPLICATE_COLUMN = "nb_replicates"
 
-COMPETENCY_SETTLED = ["NB_CCA_SETTLERS_TOP",
-                      "NB_CCA_SETTLERS_BOTTOM",
-                      "NB_PETRIDISH_SETTLERS"]
+COMPETENCY_SETTLED = ["nb_cca_settlers_top",
+                      "nb_cca_settlers_bottom",
+                      "nb_petridish_settlers"]
 
 COMPETENCY_GROUPS = {
     SETTLED_CATEGORY: COMPETENCY_SETTLED,
     SETTLING_CATEGORY: SETTLING,
-    CAULIFLOWER_CATEGORY: ["NB_CAULIFLOWERS"],
-    DEAD_CATEGORY: ["NB_DEAD"]
+    CAULIFLOWER_CATEGORY: ["nb_cauliflowers"],
+    DEAD_CATEGORY: [DEAD_COLUMN]
 }
 
 # Settings of each experiment: the app picks one with the radio button
