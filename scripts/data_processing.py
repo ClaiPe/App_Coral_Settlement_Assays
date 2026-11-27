@@ -36,7 +36,8 @@ def load_coral_data(file_path):
     with lower-case column names.
     """
     try:
-        coral_data = pd.read_csv(file_path, sep=None, engine="python")
+        coral_data = pd.read_csv(file_path, sep=None, engine="python",
+                                 encoding="utf-8-sig")
         coral_data.columns = coral_data.columns.str.lower()
         return coral_data
 
