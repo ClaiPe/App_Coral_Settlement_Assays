@@ -4,27 +4,21 @@ from matplotlib import pyplot as plt
 def compute_curve_proportions(dataframe,
                               competency_curves,
                               total_column,
-                              dead_column,
-                              alive_curve,
                               info_columns):
     """
-    Compute the proportion of competent larvae. 
-    If no data present for a curve category, this category will be ignore.
+    Compute the proportion of competent larvae.
+    If no data present for a curve category, this category will be ignored.
 
     Arguments:
     dataframe (pd.DataFrame): The DataFrame containing the data after add_category_columns()
-    competency_curves (dict): Dictionnary containing the competency curves composition
+    competency_curves (dict): Dictionary containing the competency curves composition
     total_column (str): Reference column to compute the proportion
-    dead_column (str): Reference column containing nb of dead larvae
-    alive_curve (str): Name for the alive curve
     info_columns (list): columns with important info to keep
 
     Returns:
     A Dataframe with the proportion and the info columns
     """
     competency_table = dataframe[info_columns].copy()
-
-    competency_table[alive_curve] = (dataframe[total_column] - dataframe[dead_column])/dataframe[total_column]
 
     for curve, categories in competency_curves.items():
         present_categories = [category for category in categories

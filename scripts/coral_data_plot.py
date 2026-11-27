@@ -30,7 +30,6 @@ def main():
     behavior_colors = config.BEHAVIOR_COLORS
 
     # Competency curves
-    alive_curve = config.ALIVE_CURVE
     competency_curves = config.COMPETENCY_CURVES
     competency_colors = config.COMPETENCY_COLORS
 
@@ -61,8 +60,6 @@ def main():
         competency_proportions = compute_curve_proportions(coral_data,
                                                            competency_curves,
                                                            total_larvae_per_replicate,
-                                                           config.DEAD_COLUMN,
-                                                           alive_curve,
                                                            info_columns)
         competency_table = compute_curve_mean_and_se(competency_proportions, info_columns)
         

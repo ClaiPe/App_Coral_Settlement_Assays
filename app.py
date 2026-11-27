@@ -148,8 +148,6 @@ if uploaded_file is not None:
             competency_proportions = compute_curve_proportions(coral_data,
                                                                config.COMPETENCY_CURVES,
                                                                total_larvae_per_replicate,
-                                                               config.DEAD_COLUMN,
-                                                               config.ALIVE_CURVE,
                                                                info_columns)
             result_table = compute_curve_mean_and_se(competency_proportions, info_columns)
             plot_function = plot_competency_curves

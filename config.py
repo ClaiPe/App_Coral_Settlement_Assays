@@ -3,7 +3,7 @@
 # converted to lower case, so the file can use any case.
 
 # Names of the two experiments (keys of ASSAY_SETTINGS)
-SETTLEMENT_ASSAY = "Settlement assay"
+SETTLEMENT_ASSAY = "Water and Settlement assays"
 COMPETENCY_ASSAY = "Competency assay"
 
 # Input file and experiment used by the command-line script
@@ -16,9 +16,9 @@ INFO_COLUMNS = ["cohort_id", "treatment", "age_larvae"]
 
 REPLICATE_COLUMN = "replicate"
 
-SETTLED = ["nb_cca_settlers_top",
-           "nb_cca_settlers_bottom",
-           "nb_petri_settlers"]
+SETTLED = ["settlers_top",
+           "settlers_bottom",
+           "settlers_petri"]
 
 SETTLING = ["nb_hangers"]
 
@@ -27,13 +27,14 @@ DEAD_COLUMN = "nb_dead"  # computed by the code, not in the file
 SETTLED_CATEGORY = "Settled"
 SETTLING_CATEGORY = "Settling"
 CAULIFLOWER_CATEGORY = "Cauliflower"
+SWIMMERS_CATEGORY = "Swimmers"
 
 # Categories of larval behavior to plot
 BEHAVIOR_GROUPS = {
     SETTLED_CATEGORY: SETTLED,
-    SETTLING_CATEGORY: SETTLING,
-    CAULIFLOWER_CATEGORY: ["nb_cauliflowers"],
-    "Swimmers": ["nb_swimmers"],
+    SETTLING_CATEGORY: ["hangers"],
+    CAULIFLOWER_CATEGORY: ["cauliflowers"],
+    SWIMMERS_CATEGORY: ["swimmers"],
     "Not swimming at the bottom": ["not_sw_bottom"],
     "Not swimming at the surface": ["not_sw_surface"],
     "Swimming at the bottom": ["sw_bottom"],
@@ -45,7 +46,7 @@ BEHAVIOR_COLORS = {
     SETTLED_CATEGORY: "#4ea06e",
     SETTLING_CATEGORY: "#d7ab5c",
     CAULIFLOWER_CATEGORY: "#d489b4",
-    "Swimmers": "#348ab6",
+    SWIMMERS_CATEGORY: "#348ab6",
     "Not swimming at the bottom": "#6e69b7",
     "Not swimming at the surface": "#ada3ec",
     "Swimming at the bottom": "#348ab6",
@@ -54,17 +55,17 @@ BEHAVIOR_COLORS = {
 }
 
 # Columns of the competency assay file
-COMPETENCY_TOTAL_COLUMN = "total_larvae_set"
+COMPETENCY_TOTAL_COLUMN = TOTAL_LARVAL_COLUMN
 COMPETENCY_REPLICATE_COLUMN = "nb_replicates"
 
-COMPETENCY_SETTLED = ["nb_cca_settlers_top",
-                      "nb_cca_settlers_bottom",
-                      "nb_petridish_settlers"]
+COMPETENCY_SETTLED = ["nb_settlers_cca",
+                      "nb_settlers_petri"]
 
 COMPETENCY_GROUPS = {
     SETTLED_CATEGORY: COMPETENCY_SETTLED,
     SETTLING_CATEGORY: SETTLING,
     CAULIFLOWER_CATEGORY: ["nb_cauliflowers"],
+    SWIMMERS_CATEGORY: ["nb_swimmers"],
     DEAD_CATEGORY: [DEAD_COLUMN]
 }
 
@@ -83,19 +84,23 @@ ASSAY_SETTINGS = {
 }
 
 # Competency curves
-METAMORPHOSED_CURVE = "Metamorphosed"
-ALIVE_CURVE = "Alive"
-SETTLING_CURVE = "Settling"
+SETTLED_CURVE = "Settled"
+SETTLING_CURVE = "Hangers"
+SWIMMERS_CURVE = "Swimming"
+CAULIFLOWER_CURVE = "Cauliflowers"
 
 COMPETENCY_CURVES = {
+    SETTLED_CURVE: [SETTLED_CATEGORY],
     SETTLING_CURVE: [SETTLING_CATEGORY],
-    METAMORPHOSED_CURVE: [SETTLED_CATEGORY, CAULIFLOWER_CATEGORY]
+    SWIMMERS_CURVE:  [SWIMMERS_CATEGORY],
+    CAULIFLOWER_CURVE: [CAULIFLOWER_CATEGORY]
 }
 
 COMPETENCY_COLORS = {
-    METAMORPHOSED_CURVE: "#545454",
-    ALIVE_CURVE: "#f7b63d",
-    SETTLING_CURVE: "#F06A6A"
+    SETTLED_CURVE: "#4ea06e",
+    SWIMMERS_CURVE: "#348ab6",
+    SETTLING_CURVE: "#d7ab5c",
+    CAULIFLOWER_CURVE: "#d489b4"
 }
 
 # Output parameters
