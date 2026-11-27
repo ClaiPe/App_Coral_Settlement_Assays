@@ -20,7 +20,7 @@ SETTLED = ["settlers_top",
            "settlers_bottom",
            "settlers_petri"]
 
-SETTLING = ["nb_hangers"]
+SETTLING = ["hangers"]
 
 DEAD_CATEGORY = "Dead"
 DEAD_COLUMN = "nb_dead"  # computed by the code, not in the file
@@ -56,16 +56,16 @@ BEHAVIOR_COLORS = {
 
 # Columns of the competency assay file
 COMPETENCY_TOTAL_COLUMN = TOTAL_LARVAL_COLUMN
-COMPETENCY_REPLICATE_COLUMN = "nb_replicates"
+COMPETENCY_REPLICATE_COLUMN = "replicate"
 
-COMPETENCY_SETTLED = ["nb_settlers_cca",
-                      "nb_settlers_petri"]
+COMPETENCY_SETTLED = ["settlers_cca",
+                      "settlers_petri"]
 
 COMPETENCY_GROUPS = {
     SETTLED_CATEGORY: COMPETENCY_SETTLED,
     SETTLING_CATEGORY: SETTLING,
-    CAULIFLOWER_CATEGORY: ["nb_cauliflowers"],
-    SWIMMERS_CATEGORY: ["nb_swimmers"],
+    CAULIFLOWER_CATEGORY: ["cauliflowers"],
+    SWIMMERS_CATEGORY: ["swimmers"],
     DEAD_CATEGORY: [DEAD_COLUMN]
 }
 
